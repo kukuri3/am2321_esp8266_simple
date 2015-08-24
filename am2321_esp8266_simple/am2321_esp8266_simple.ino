@@ -5,6 +5,7 @@
 #include <AM2321.h>
 #include <Weather.h>
 #include <math.h>
+//#include <FreqCounter.h>
 AM2321 ac;
 
 #include "ESP8266.h"
@@ -15,7 +16,7 @@ AM2321 ac;
 #define HOST_NAME   "192.168.1.18"
 #define HOST_PORT   (4126)
 
-SoftwareSerial mySerial(3, 2); /* RX:D3, TX:D2 */
+SoftwareSerial mySerial(3, 4); /* RX:D3, TX:D2 */
 ESP8266 wifi(mySerial);
 
 #define LED_PIN 13
@@ -23,6 +24,8 @@ ESP8266 wifi(mySerial);
 float temperature;
 float humidity;
 float dewpoint;
+long int freq;
+long int lux;
 
 void setup(void)
 {
@@ -94,6 +97,16 @@ void loop(void)
   dewpoint=dewPoint(temperature,humidity);
   
   
+  //S9705から照度を取得
+  /*
+  FreqCounter::f_comp = 8;             // Set compensation to 12
+  FreqCounter::start(1000);            // Start counting with gatetime of 1000ms
+  while (FreqCounter::f_ready == 0);  // wait until counter ready
+  freq = FreqCounter::f_freq;            // read result
+  lux=freq/500;
+*/
+
+  
   //シリアルに出力
 //  Serial.print(millis()/1000);
   Serial.print(millis()/1000);
@@ -103,10 +116,16 @@ void loop(void)
   Serial.print(humidity);
   Serial.print(", Dewpoint[C],");
   Serial.print(dewpoint);
+  Serial.print(", freq[Hz],");
+  Serial.print(freq);
+  Serial.print(",Lux,");
+  Serial.print(lux);
+  
+  
   Serial.print("\r\n");
   
   //wifiに出力
-  sprintf(buf,"id,%d,name,%s,time,%d,temp,%d,hum,%d,dew,%d\r\n",kID,kNAME,(int)(millis()/1000),(int)(temperature*10),(int)(humidity*10),(int)(dewpoint*10));
+  sprintf(buf,"id,%d,name,%s,time,%d,temp,%d,hum,%d,dew,%d,lux,%d\r\n",kID,kNAME,(int)(millis()/1000),(int)(temperature*10),(int)(humidity*10),(int)(dewpoint*10),lux);
   wifi.send((const uint8_t*)buf, strlen(buf));
   Serial.print(buf);
   
