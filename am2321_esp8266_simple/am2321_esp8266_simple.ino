@@ -1,5 +1,11 @@
-#define kID (4)
-#define kNAME "1F_HALL"
+//#define kID (4)
+//#define kNAME "1F_HALL"
+//#define kID (5)
+//#define kNAME "1F_YOUSITU"
+#define kID (6)
+#define kNAME "2F_HALL"
+//#define kID (7)
+//#define kNAME "2F_B"
 
 #include <Wire.h>
 #include <AM2321.h>
@@ -130,6 +136,6 @@ void loop(void)
   Serial.print(buf);
   
 
-   delay(5000);
+   delay(20000);
 }
           
