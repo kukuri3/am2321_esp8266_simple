@@ -32,7 +32,9 @@ AM2321 ac;
 
 #include "ESP8266.h"
 #include <SoftwareSerial.h>
+#include <ST7032.h>
 
+ST7032 lcd;
 
 
 SoftwareSerial mySerial(3, 2); /* RX:D3, TX:D2 */
@@ -72,6 +74,12 @@ void setup(void)
 	//LEDピンを出力に
 	pinMode(LED_PIN, OUTPUT);
 	//xWifiSetup();
+  
+        // set up the LCD's number of columns and rows: 
+        lcd.begin(16, 2);
+        lcd.setContrast(30);
+        // Print a message to the LCD.
+        lcd.print("hello, world!");
 
 }
 
@@ -199,9 +207,24 @@ void loop(void)
 	int txresult=wifi.send((const uint8_t*)buf, strlen(buf));
 	Serial.print(buf);
 	//Serial.println(wifi.getNowConecAp());
+        
+        //LCDに出力
+        lcd.setCursor(0, 1);
+        // print the number of seconds since reset:
+        lcd.print(millis()/1000);
+        
+        //UDP受信
+        for(int i=0;i<30;i++){
+          uint32_t len = wifi.recv(buffer, sizeof(buffer), 100);
+          if (len > 0) {
+            Serial.print("Received:[");
+            for(uint32_t i = 0; i < len; i++) {
+              Serial.print((char)buffer[i]);
+            }
+            Serial.print("]\r\n");
+          }
 
-
-	delay(30000);
-
+	  delay(1000);
+        }
 
 }
