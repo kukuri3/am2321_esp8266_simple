@@ -1,13 +1,11 @@
 
 
-//#define kID (4)
+
 //#define kNAME "1F_HALL"
-//#define kID (5)
 //#define kNAME "1F_YOUSITU"
-#define kID (6)
-#define kNAME "2F_HALL"
-//#define kID (7)
+//#define kNAME "2F_HALL"
 //#define kNAME "2F_B"
+#define kNAME "2F_D"
 /*
 #define SSID        "yosemite"
 #define PASSWORD    "ftnde201315"
@@ -26,15 +24,16 @@
 #include <math.h>
 #include <FreqCounter.h>
 #include <LPS331.h>
+#include <ST7032.h>
 
 LPS331 ps;
 AM2321 ac;
+ST7032 lcd;
 
 #include "ESP8266.h"
 #include <SoftwareSerial.h>
-#include <ST7032.h>
 
-ST7032 lcd;
+
 
 
 SoftwareSerial mySerial(3, 2); /* RX:D3, TX:D2 */
@@ -56,17 +55,34 @@ float pressure;
 long loopcount=0;
 
 void xWifiSetup(void);
+void xWifiSetup2(void);
 
 void setup(void)
 {
 
 	Wire.begin();
-	Serial.begin(9600);  
-	if (!ps.init())
+	Serial.begin(9600);          
+        lcd.begin(16, 2);
+        lcd.setContrast(30);
+        // Print a message to the LCD.
+        lcd.setCursor(0,0);
+        lcd.print("welcome to sensor");
+        lcd.setCursor(0,1);
+        lcd.print("name:");
+        lcd.print(kNAME);
+        delay(1000);
+        lcd.setCursor(0,0);
+        lcd.print("start init.     ");
+        
+	if (!ps.init(0x5c))
 	{
+		lcd.setCursor(0,0);
+                lcd.print("LPS331 fail!!!  ");
 		Serial.println("Failed to autodetect pressure sensor!");
 	}else{
 		Serial.println("LPS331 found!");
+                lcd.setCursor(0,0);
+                lcd.print("LPS331 found!  ");
 		ps.enableDefault();
 		psflag=1;
 	}
@@ -75,33 +91,51 @@ void setup(void)
 	pinMode(LED_PIN, OUTPUT);
 	//xWifiSetup();
   
-        // set up the LCD's number of columns and rows: 
-        lcd.begin(16, 2);
-        lcd.setContrast(30);
-        // Print a message to the LCD.
-        lcd.print("hello, world!");
+
 
 }
 
 
 void xWifiSetup(void)
 {
-
+        lcd.setCursor(0,0);
+        lcd.print("wifi setup begin.");
 	Serial.print("setup begin\r\n");
-
+        Serial.print("connectin to ");
+        Serial.println(SSID);
+        lcd.setCursor(0,0);lcd.print("Connecting to ");
+        lcd.setCursor(0,1);lcd.print(SSID);
 	if (wifi.setOprToStationSoftAP()) {
 		Serial.print("softap ok\r\n");
 	} else {
 		Serial.print("softap err\r\n");
 	}
-
 	if (wifi.joinAP(SSID, PASSWORD)) {
-		Serial.print("AP success\r\n");
+                Serial.println(wifi.getLocalIP().c_str());  
+                String ipstr=wifi.getLocalIP();
+                int lfpos=ipstr.indexOf("\n");
+                String trueip=ipstr.substring(lfpos);
+		
+                Serial.print("AP success\r\n");
 		Serial.print("IP: ");
-		Serial.println(wifi.getLocalIP().c_str());  
-		Serial.println("ip got!");    
+		Serial.println(ipstr.c_str());  
+		Serial.println(trueip.c_str());  
+		Serial.println("ip got!"); 
+                lcd.clear();
+                lcd.setCursor(0,0);
+                lcd.print("local ip got!");
+                lcd.setCursor(0,1);
+                lcd.print(trueip.c_str());
+                
+
+                
 	} else {
 		Serial.print("AP failure\r\n");
+                lcd.clear();
+                lcd.setCursor(0,0);
+                lcd.print("AP failure.  ");
+
+
 	}
 	if(wifi.setAutoConnect(1)){
 		Serial.print("auto connect ok\r\n");
@@ -202,24 +236,29 @@ void loop(void)
 	idew=(int)(dewpoint*10);
 	ipress=(int)(pressure*10);
 
-	sprintf(buf,"id,%d,name,%s,count,%ld,temp,%d,hum,%d,dew,%d,lux,%ld,press,%d\r\n"
-			,kID,kNAME,loopcount,itemp,ihum,idew,lux,ipress);
+	sprintf(buf,"name,%s,count,%ld,temp,%d,hum,%d,dew,%d,lux,%ld,press,%d\r\n"
+			,kNAME,loopcount,itemp,ihum,idew,lux,ipress);
 	int txresult=wifi.send((const uint8_t*)buf, strlen(buf));
 	Serial.print(buf);
 	//Serial.println(wifi.getNowConecAp());
         
         //LCDに出力
-        lcd.setCursor(0, 1);
-        // print the number of seconds since reset:
-        lcd.print(millis()/1000);
+        sprintf(buf,"%4.1C %4.1f\% %4.1fC",temperature,humidity,dewpoint); 
+        lcd.setCursor(0, 0);
+        dtostrf(temperature,4,1,buf);lcd.print(buf);lcd.print("C ");
+        dtostrf(humidity,4,1,buf);lcd.print(buf);lcd.print("\% ");
+        dtostrf(dewpoint,4,1,buf);lcd.print(buf);lcd.print("C");
+  
         
         //UDP受信
+        lcd.setCursor(0,1);
         for(int i=0;i<30;i++){
           uint32_t len = wifi.recv(buffer, sizeof(buffer), 100);
           if (len > 0) {
             Serial.print("Received:[");
             for(uint32_t i = 0; i < len; i++) {
               Serial.print((char)buffer[i]);
+              lcd.print((char)buffer[i]);
             }
             Serial.print("]\r\n");
           }
