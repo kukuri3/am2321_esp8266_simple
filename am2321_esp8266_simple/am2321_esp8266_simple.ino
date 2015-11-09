@@ -4,21 +4,21 @@
 //#define kNAME "1F_HALL"
 //#define kID (5)
 //#define kNAME "1F_YOUSITU"
-#define kID (6)
-#define kNAME "2F_HALL"
+#define kID (1)
+#define kNAME "OUTS"
 //#define kID (7)
 //#define kNAME "2F_B"
-/*
+
 #define SSID        "yosemite"
 #define PASSWORD    "ftnde201315"
-#define HOST_NAME   "192.168.1.18"
+#define HOST_NAME   "192.168.1.40"
 #define HOST_PORT   (4126)
- */
+/*
 #define SSID        "G808"
 #define PASSWORD    "12345678"
 #define HOST_NAME   "192.168.43.170"
 #define HOST_PORT   (4126)
-
+*/
 
 #include <Wire.h>
 #include <AM2321.h>
