@@ -61,6 +61,7 @@ void setup(void)
 {
 
 	Wire.begin();
+        delay(1000);
 	Serial.begin(9600);          
         lcd.begin(16, 2);
         lcd.setContrast(30);
@@ -73,7 +74,7 @@ void setup(void)
         delay(1000);
         lcd.setCursor(0,0);
         lcd.print("start init.     ");
-        
+
 	if (!ps.init(0x5c))
 	{
 		lcd.setCursor(0,0);
